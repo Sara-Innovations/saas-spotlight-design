@@ -2,7 +2,7 @@ import { Star } from "lucide-react";
 
 const testimonials = [
   {
-    quote: "SaaSFlow replaced five tools for us. Our team collaboration improved overnight and we closed 40% more deals in Q1.",
+    quote: "Trading Hub replaced five tools for us. Our team collaboration improved overnight and we closed 40% more deals in Q1.",
     name: "Sarah Chen",
     role: "VP Sales, TechScale",
     avatar: "SC",
@@ -30,7 +30,7 @@ const Testimonials = () => (
           Loved by 200,000+ teams
         </h2>
         <p className="text-muted-foreground text-lg">
-          See why growing businesses choose SaaSFlow as their operating system.
+          See why growing businesses choose Trading Hub as their operating system.
         </p>
       </div>
 

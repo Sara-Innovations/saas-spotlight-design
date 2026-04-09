@@ -40,12 +40,12 @@ const Navbar = () => {
         </div>
 
         <div className="hidden md:flex items-center gap-3">
-          <Link to="/profile">
-            <Button variant="ghost" size="sm">My Account</Button>
+          <Link to="/login" className="text-sm font-bold text-neutral-600 hover:text-primary transition-colors px-2">
+            Login
           </Link>
-          <Link to="/payments">
-            <Button size="sm" className="gradient-bg text-primary-foreground hover:opacity-90 transition-opacity">
-              Dashboard
+          <Link to="/register">
+            <Button size="sm" className="gradient-bg text-primary-foreground font-bold shadow-lg shadow-primary/20 hover:opacity-90 transition-all active:scale-95">
+              Join as Company
             </Button>
           </Link>
         </div>
@@ -77,12 +77,12 @@ const Navbar = () => {
               {link.label}
             </Link>
           ))}
-          <div className="flex flex-col gap-2 mt-3">
-            <Link to="/profile" onClick={() => setMobileOpen(false)}>
-              <Button variant="ghost" size="sm" className="w-full">My Account</Button>
+          <div className="flex flex-col gap-2 mt-4 pt-4 border-t border-neutral-100">
+            <Link to="/login" onClick={() => setMobileOpen(false)}>
+              <Button variant="outline" size="sm" className="w-full font-bold">Login</Button>
             </Link>
-            <Link to="/payments" onClick={() => setMobileOpen(false)}>
-              <Button size="sm" className="gradient-bg text-primary-foreground w-full">Dashboard</Button>
+            <Link to="/register" onClick={() => setMobileOpen(false)}>
+              <Button size="sm" className="gradient-bg text-primary-foreground w-full font-bold">Join as Company</Button>
             </Link>
           </div>
         </div>

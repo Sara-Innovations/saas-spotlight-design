@@ -66,7 +66,7 @@ const Solutions = () => {
             Built for every team
           </h2>
           <p className="text-muted-foreground text-lg">
-            Whether you're in marketing, sales, or service — SaaSFlow adapts to your workflow.
+            Whether you're in marketing, sales, or service — Trading Hub adapts to your workflow.
           </p>
         </div>
 

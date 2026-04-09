@@ -54,7 +54,7 @@ const Hero = () => (
             <div className="absolute -inset-4 rounded-3xl bg-primary/5 blur-2xl -z-10" />
             <img
               src={heroImage}
-              alt="SaaSFlow platform dashboard"
+              alt="Trading Hub platform dashboard"
               className="rounded-2xl shadow-2xl border border-border"
               loading="eager"
             />
