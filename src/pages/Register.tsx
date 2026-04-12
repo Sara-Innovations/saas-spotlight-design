@@ -13,6 +13,9 @@ import Step2Company from "@/components/auth/register-steps/Step2Company";
 import Step3Address from "@/components/auth/register-steps/Step3Address";
 import Step4Contact from "@/components/auth/register-steps/Step4Contact";
 import SummaryStep from "@/components/auth/register-steps/SummaryStep";
+import { registerBusiness } from "@/lib/api";
+import { Loader2 } from "lucide-react";
+
 
 // Form Schema
 const registrationSchema = z.object({
@@ -24,9 +27,12 @@ const registrationSchema = z.object({
   
   // Step 2: Company
   companyName: z.string().min(2, "Company name is required"),
+  categoryId: z.string().min(1, "Please select a category"),
+  subCategoryId: z.string().optional(),
   title: z.string().optional(),
   about: z.string().optional(),
   website: z.string().url("Must be a valid URL").optional().or(z.literal("")),
+
   
   // Step 3: Address
   buildingName: z.string().optional(),
@@ -54,7 +60,9 @@ const steps = ["Account", "Company", "Address", "Contact", "Review"];
 
 const Register = () => {
   const [step, setStep] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
+
   
   const form = useForm<RegistrationFormValues>({
     resolver: zodResolver(registrationSchema),
@@ -64,6 +72,8 @@ const Register = () => {
       username: "",
       password: "",
       companyName: "",
+      categoryId: "",
+      subCategoryId: "",
       title: "",
       about: "",
       website: "",
@@ -95,33 +105,52 @@ const Register = () => {
     }
   };
 
-  const onSubmit = (data: RegistrationFormValues) => {
-    console.log("Form Data Submitted:", JSON.stringify(data, null, 2));
-    toast.success("Registration Successful!");
-    setTimeout(() => navigate("/"), 2000);
+  const onSubmit = async (data: RegistrationFormValues) => {
+    setIsSubmitting(true);
+    try {
+      console.log("Submitting Form Data:", JSON.stringify(data, null, 2));
+      const result = await registerBusiness(data);
+      
+      if (result.status === "success") {
+        toast.success(result.message || "Registration Successful!");
+        setTimeout(() => navigate("/login"), 2000);
+      } else {
+        toast.error(result.message || "Registration failed");
+      }
+    } catch (error: any) {
+      console.error("Registration Error:", error);
+      toast.error(error.message || "An unexpected error occurred during registration");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
+
 
   const getStepFields = (stepNumber: number) => {
     switch (stepNumber) {
       case 1: return ["abn", "username", "password"];
-      case 2: return ["companyName"];
+      case 2: return ["companyName", "categoryId"];
       case 3: return ["streetNumber", "streetName", "businessSuburb", "state", "postCode"];
       case 4: return ["mobile", "email", "startingDay", "closingDay", "startingTime", "closingTime"];
       default: return [];
     }
   };
 
+
   return (
     <div className="space-y-8 py-4 font-sans animate-in fade-in slide-in-from-bottom-4 duration-700">
       <StepIndicator currentStep={step} totalSteps={steps.length} steps={steps} />
 
-      <Card className="shadow-xl border border-neutral-100 bg-white overflow-hidden rounded-2xl">
-        <div className="bg-gradient-to-r from-primary/5 to-accent/5 p-6 border-b border-neutral-100">
-          <h3 className="text-xl font-bold text-neutral-900 flex items-center gap-2">
-            <span className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center text-sm">{step}</span>
+
+
+      <Card className="shadow-xl border border-border bg-card overflow-hidden rounded-2xl">
+        <div className="bg-gradient-to-r from-primary/5 to-accent/5 p-6 border-b border-border">
+          <h3 className="text-xl font-bold text-foreground flex items-center gap-2">
+            <span className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm">{step}</span>
             {steps[step - 1]} Information
           </h3>
         </div>
+
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -135,13 +164,14 @@ const Register = () => {
               </div>
             </CardContent>
 
-            <CardFooter className="flex justify-between border-t border-neutral-100 p-8 bg-neutral-50/50">
+            <CardFooter className="flex justify-between border-t border-border p-8 bg-muted/30">
               <Button
                 type="button"
                 variant="ghost"
-                className="hover:bg-neutral-100 transition-all font-semibold"
+                className="hover:bg-muted transition-all font-semibold"
                 onClick={() => step > 1 ? setStep(s => s - 1) : navigate("/")}
               >
+
                 {step === 1 ? "Cancel" : "Back"}
               </Button>
               
@@ -156,10 +186,19 @@ const Register = () => {
               ) : (
                 <Button 
                   type="submit"
+                  disabled={isSubmitting}
                   className="px-8 font-bold bg-gradient-to-r from-primary to-accent hover:opacity-90 shadow-xl shadow-primary/20 active:scale-95 transition-all"
                 >
-                  Confirm & Submit
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Registering...
+                    </>
+                  ) : (
+                    "Confirm & Submit"
+                  )}
                 </Button>
+
               )}
             </CardFooter>
           </form>

@@ -4,22 +4,75 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <!-- TODO: Set the document title to the name of your application -->
-    <title>Trading Hub - Australia's Business Platform</title>SaaSFlow — Where Growing Teams Scale Faster</title>
-    <meta name="description" content="Unite marketing, sales, and service on one AI-powered platform. Drive revenue and grow without complexity." />
-    <meta name="author" content="SaaSFlow" />
+    <title>Trading Hub - Australia's Business Platform</title>
+    <meta name="description" content="Find the best businesses in Australia. Connect with local services and grow your network on the premier business hub." />
+    <meta name="author" content="Trading Hub" />
 
-    <meta property="og:title" content="SaaSFlow — Where Growing Teams Scale Faster" />
-    <meta property="og:description" content="Unite marketing, sales, and service on one AI-powered platform." />
+    <meta property="og:title" content="Trading Hub - Australia's Business Platform" />
+    <meta property="og:description" content="Connect with the best local businesses across Australia." />
     <meta property="og:type" content="website" />
-    <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+    <meta property="og:image" content="/asset/images/og-image.png" />
 
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@Lovable" />
-    <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+    <meta name="twitter:site" content="@TradingHub" />
+    <meta name="twitter:image" content="/asset/images/og-image.png" />
+    <style>
+      #preloader {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(circle at center, #ffffff 0%, #f0fdfa 100%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+      }
+      .preloader-logo {
+        font-family: system-ui, -apple-system, sans-serif;
+        font-size: 2.5rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 2rem;
+        letter-spacing: -0.05em;
+      }
+      .loader-line {
+        width: 180px;
+        height: 4px;
+        background: #e2e8f0;
+        border-radius: 10px;
+        overflow: hidden;
+        position: relative;
+      }
+      .loader-line::after {
+        content: '';
+        position: absolute;
+        left: -50%;
+        width: 50%;
+        height: 100%;
+        background: #0d9488;
+        animation: loading 1.5s infinite cubic-bezier(0.4, 0, 0.2, 1);
+        border-radius: 10px;
+      }
+      @keyframes loading {
+        0% { left: -50%; width: 30%; }
+        50% { width: 50%; }
+        100% { left: 100%; width: 30%; }
+      }
+    </style>
   </head>
 
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div id="preloader">
+        <div class="preloader-logo">Trading Hub</div>
+        <div class="loader-line"></div>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

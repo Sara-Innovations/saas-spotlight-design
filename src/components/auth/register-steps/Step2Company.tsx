@@ -1,11 +1,31 @@
-import { useFormContext } from "react-hook-form";
+import { useFormContext, useWatch } from "react-hook-form";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RegistrationFormValues } from "@/pages/Register";
+import { useQuery } from "@tanstack/react-query";
+import { fetchCategories, fetchSubCategories } from "@/lib/api";
+import { useEffect, useState } from "react";
+import { Loader2 } from "lucide-react";
 
 const Step2Company = () => {
-  const { control } = useFormContext<RegistrationFormValues>();
+  const { control, setValue } = useFormContext<RegistrationFormValues>();
+  const selectedCategory = useWatch({ control, name: "categoryId" });
+  
+  const { data: categoriesData, isLoading: isLoadingCats } = useQuery({
+    queryKey: ["categories"],
+    queryFn: fetchCategories,
+  });
+
+  const { data: subCatsData, isLoading: isLoadingSubCats, refetch: refetchSubCats } = useQuery({
+    queryKey: ["subcategories", selectedCategory],
+    queryFn: () => fetchSubCategories(selectedCategory),
+    enabled: !!selectedCategory,
+  });
+
+  const categories = categoriesData?.data || [];
+  const subCategories = subCatsData?.data || [];
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
@@ -22,6 +42,61 @@ const Step2Company = () => {
           </FormItem>
         )}
       />
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <FormField
+          control={control}
+          name="categoryId"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Business Category</FormLabel>
+              <Select onValueChange={(val) => {
+                field.onChange(val);
+                setValue("subCategoryId", ""); // Reset subcategory on category change
+              }} value={field.value}>
+                <FormControl>
+                  <SelectTrigger className="bg-background">
+                    <SelectValue placeholder={isLoadingCats ? "Loading..." : "Select Category"} />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {categories.map((cat) => (
+                    <SelectItem key={cat.id} value={cat.id}>
+                      {cat.category_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={control}
+          name="subCategoryId"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Sub-Category (Optional)</FormLabel>
+              <Select onValueChange={field.onChange} value={field.value} disabled={!selectedCategory || isLoadingSubCats}>
+                <FormControl>
+                  <SelectTrigger className="bg-background">
+                    <SelectValue placeholder={isLoadingSubCats ? "Loading..." : "Select Sub-Category"} />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {subCategories.map((sub) => (
+                    <SelectItem key={sub.id} value={sub.id}>
+                      {sub.category_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
       
       <FormField
         control={control}
@@ -71,5 +146,6 @@ const Step2Company = () => {
     </div>
   );
 };
+
 
 export default Step2Company;

@@ -8,8 +8,10 @@ import BusinessSearch from "./pages/BusinessSearch";
 import BusinessDetails from "./pages/BusinessDetails";
 import Services from "./pages/Services";
 import Products from "./pages/Products";
+import ProductDetails from "./pages/ProductDetails";
 import Jobs from "./pages/Jobs";
 import JobDetails from "./pages/JobDetails";
+
 import Profile from "./pages/Profile";
 import Payments from "./pages/Payments";
 import About from "./pages/About";
@@ -20,11 +22,14 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 import AuthLayout from "./components/auth/AuthLayout";
+import { ThemeProvider } from "next-themes";
 
 const queryClient = new QueryClient();
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
+  <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+    <QueryClientProvider client={queryClient}>
+
     <TooltipProvider>
       <Toaster />
       <Sonner />
@@ -35,7 +40,9 @@ const App = () => (
           <Route path="/businesses/:id" element={<BusinessDetails />} />
           <Route path="/services" element={<Services />} />
           <Route path="/products" element={<Products />} />
+          <Route path="/products/:id" element={<ProductDetails />} />
           <Route path="/jobs" element={<Jobs />} />
+
           <Route path="/jobs/:id" element={<JobDetails />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/payments" element={<Payments />} />
@@ -52,7 +59,9 @@ const App = () => (
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
-  </QueryClientProvider>
+    </QueryClientProvider>
+  </ThemeProvider>
 );
 
 export default App;
+
