@@ -1,8 +1,9 @@
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, ChevronDown, Sun, Moon } from "lucide-react";
+import { Menu, X, ChevronDown, Sun, Moon, ShoppingCart, Heart } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
+import { getCart, getWishlist } from "@/lib/api";
 
 const navLinks = [
   { label: "Home", href: "/" },
@@ -15,6 +16,8 @@ const navLinks = [
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [cart, setCart] = useState({ items: [], total_items: 0, total_price: 0 });
+  const [wishlist, setWishlist] = useState([]);
   const { theme, setTheme } = useTheme();
   const location = useLocation();
   // Avoid hydration mismatch
@@ -22,9 +25,26 @@ const Navbar = () => {
     setMounted(true);
   }, []);
 
-  // Avoid hydration mismatch
+  // Load cart and wishlist data
   useEffect(() => {
-    setMounted(true);
+    if (mounted) {
+      setCart(getCart());
+      setWishlist(getWishlist());
+    }
+  }, [mounted]);
+
+  // Listen for cart and wishlist updates
+  useEffect(() => {
+    const handleCartUpdate = () => setCart(getCart());
+    const handleWishlistUpdate = () => setWishlist(getWishlist());
+    
+    window.addEventListener('cartUpdate', handleCartUpdate);
+    window.addEventListener('wishlistUpdate', handleWishlistUpdate);
+    
+    return () => {
+      window.removeEventListener('cartUpdate', handleCartUpdate);
+      window.removeEventListener('wishlistUpdate', handleWishlistUpdate);
+    };
   }, []);
 
   return (
@@ -51,6 +71,26 @@ const Navbar = () => {
         </div>
 
         <div className="hidden md:flex items-center gap-3">
+          {/* Cart Button */}
+          <Link to="/cart" className="relative p-2 rounded-full hover:bg-muted transition-colors">
+            <ShoppingCart className="w-5 h-5" />
+            {cart.total_items > 0 && (
+              <span className="absolute -top-1 -right-1 bg-indigo-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                {cart.total_items}
+              </span>
+            )}
+          </Link>
+
+          {/* Wishlist Button */}
+          <Link to="/wishlist" className="relative p-2 rounded-full hover:bg-muted transition-colors">
+            <Heart className="w-5 h-5" />
+            {wishlist.length > 0 && (
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                {wishlist.length}
+              </span>
+            )}
+          </Link>
+
           {mounted && (
             <button
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
@@ -101,6 +141,22 @@ const Navbar = () => {
             </Link>
           ))}
           <div className="flex flex-col gap-2 mt-4 pt-4 border-t border-neutral-100 dark:border-white/10">
+            {/* Cart and Wishlist Links */}
+            <div className="flex gap-2">
+              <Link to="/cart" onClick={() => setMobileOpen(false)} className="flex-1">
+                <Button variant="outline" size="sm" className="w-full font-bold flex items-center gap-2">
+                  <ShoppingCart className="w-4 h-4" />
+                  Cart {cart.total_items > 0 && `(${cart.total_items})`}
+                </Button>
+              </Link>
+              <Link to="/wishlist" onClick={() => setMobileOpen(false)} className="flex-1">
+                <Button variant="outline" size="sm" className="w-full font-bold flex items-center gap-2">
+                  <Heart className="w-4 h-4" />
+                  Wishlist {wishlist.length > 0 && `(${wishlist.length})`}
+                </Button>
+              </Link>
+            </div>
+            
             {mounted && (
               <div className="flex items-center justify-between py-2 px-1">
                 <span className="text-sm font-medium text-muted-foreground">Appearance</span>
