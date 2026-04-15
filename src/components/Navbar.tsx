@@ -1,9 +1,11 @@
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, ChevronDown, Sun, Moon, ShoppingCart, Heart } from "lucide-react";
+import { Menu, X, ChevronDown, Sun, Moon, ShoppingCart, Heart, User } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { getCart, getWishlist } from "@/lib/api";
+import { useAuth } from "@/contexts/AuthContext";
+import { LoginModal } from "@/components/LoginModal";
 
 const navLinks = [
   { label: "Home", href: "/" },
@@ -20,6 +22,7 @@ const Navbar = () => {
   const [wishlist, setWishlist] = useState([]);
   const { theme, setTheme } = useTheme();
   const location = useLocation();
+  const { isAuthenticated, user, openLoginModal, logout } = useAuth();
   // Avoid hydration mismatch
   useEffect(() => {
     setMounted(true);
@@ -48,6 +51,7 @@ const Navbar = () => {
   }, []);
 
   return (
+    <>
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
       <div className="container mx-auto flex items-center justify-between h-16 px-4">
         <Link to="/" className="text-xl font-bold gradient-text">
@@ -104,14 +108,29 @@ const Navbar = () => {
               )}
             </button>
           )}
-          <Link to="/login" className="text-sm font-bold text-neutral-600 hover:text-primary transition-colors px-2">
-            Login
-          </Link>
-          <Link to="/register">
-            <Button size="sm" className="gradient-bg text-primary-foreground font-bold shadow-lg shadow-primary/20 hover:opacity-90 transition-all active:scale-95">
-              Join as Company
+          {isAuthenticated ? (
+            <div className="flex items-center gap-2">
+              <Link to="/profile" className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted hover:bg-muted/80 transition-colors">
+                <User className="w-4 h-4" />
+                <span className="text-sm font-medium">{user?.customername || user?.username}</span>
+              </Link>
+              <button
+                onClick={logout}
+                className="text-sm font-bold text-neutral-600 hover:text-red-500 transition-colors px-2"
+              >
+                Logout
+              </button>
+            </div>
+          ) : (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={openLoginModal}
+              className="font-bold"
+            >
+              Login
             </Button>
-          </Link>
+          )}
         </div>
 
         {/* Mobile toggle */}
@@ -172,16 +191,30 @@ const Navbar = () => {
                 </button>
               </div>
             )}
-            <Link to="/login" onClick={() => setMobileOpen(false)}>
-              <Button variant="outline" size="sm" className="w-full font-bold">Login</Button>
-            </Link>
-            <Link to="/register" onClick={() => setMobileOpen(false)}>
-              <Button size="sm" className="gradient-bg text-primary-foreground w-full font-bold">Join as Company</Button>
-            </Link>
+            {isAuthenticated ? (
+              <>
+                <Link to="/profile" onClick={() => setMobileOpen(false)}>
+                  <Button variant="outline" size="sm" className="w-full font-bold flex items-center gap-2">
+                    <User className="w-4 h-4" />
+                    {user?.customername || user?.username}
+                  </Button>
+                </Link>
+                <Button onClick={() => { logout(); setMobileOpen(false); }} size="sm" variant="destructive" className="w-full font-bold">
+                  Logout
+                </Button>
+              </>
+            ) : (
+              <Button onClick={() => { openLoginModal(); setMobileOpen(false); }} size="sm" variant="outline" className="w-full font-bold">
+                Login
+              </Button>
+            )}
           </div>
         </div>
       )}
+      
     </nav>
+    <LoginModal />
+    </>
   );
 };
 

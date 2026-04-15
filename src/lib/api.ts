@@ -171,38 +171,43 @@ export const fetchProducts = async ({
   return response.json() as Promise<ApiResponse<any[]>>;
 };
 
-export const fetchJobs = async ({
-  page = 0,
-  search = ""
-}: {
-  page?: number,
-  search?: string
-}) => {
-  const params = new URLSearchParams();
-  params.append("page", page.toString());
-  if (search) params.append("search", search);
-
-  const response = await fetch(`${API_BASE_URL}/jobs?${params.toString()}`);
-  if (!response.ok) {
-    throw new Error("Failed to fetch jobs");
-  }
-  return response.json() as Promise<ApiResponse<any[]>>;
-};
-
-export const fetchJobDetails = async (id: string) => {
-  const response = await fetch(`${API_BASE_URL}/jobs/${id}`);
-  if (!response.ok) {
-    throw new Error("Failed to fetch job details");
-  }
-  return response.json() as Promise<ApiResponse<any>>;
-};
-
 export const fetchProductDetails = async (id: string) => {
   const response = await fetch(`${API_BASE_URL}/products/${id}`);
   if (!response.ok) {
     throw new Error("Failed to fetch product details");
   }
   return response.json() as Promise<ApiResponse<any>>;
+};
+
+// Jobs API - Fetch all active jobs from all companies
+export const fetchJobs = async ({
+  page = 1,
+  limit = 10,
+  search = ""
+}: {
+  page?: number;
+  limit?: number;
+  search?: string;
+} = {}) => {
+  const params = new URLSearchParams();
+  params.append("page", page.toString());
+  params.append("limit", limit.toString());
+  if (search) params.append("search", search);
+
+  // Use bargainshop API endpoint
+  const response = await fetch(`http://bargainshop.test/api_jobs/list?${params.toString()}`);
+  if (!response.ok) {
+    throw new Error("Failed to fetch jobs");
+  }
+  return response.json();
+};
+
+export const fetchJobDetails = async (id: string) => {
+  const response = await fetch(`http://bargainshop.test/api_jobs/details/${id}`);
+  if (!response.ok) {
+    throw new Error("Failed to fetch job details");
+  }
+  return response.json();
 };
 
 export const fetchBargainProducts = async (page: number = 1, limit: number = 20) => {

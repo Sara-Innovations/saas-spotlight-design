@@ -1,23 +1,59 @@
 import { useQuery } from "@tanstack/react-query";
 import { fetchJobs } from "@/lib/api";
 import { Link } from "react-router-dom";
-import { Search, Briefcase, MapPin, DollarSign, Calendar, ArrowRight } from "lucide-react";
+import { Search, Briefcase, MapPin, DollarSign, Calendar, ArrowRight, Building2, Users, Clock, Filter } from "lucide-react";
 import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+
+interface Job {
+  id: number;
+  job_title: string;
+  vacancy: number;
+  job_type: string;
+  experience: string | null;
+  gender: string | null;
+  job_location: string;
+  job_context: string;
+  responsibilities: string;
+  educational_requirements: string;
+  experience_requirements: string;
+  additional_requirements: string;
+  other_benefits: string;
+  salary_range: string;
+  salary_type: string;
+  application_deadline: string;
+  thumbnail: string | null;
+  category_name: string | null;
+  company_name: string | null;
+  company_logo: string | null;
+  company_address: string | null;
+  created_at: string;
+}
 
 const Jobs = () => {
     const [searchTerm, setSearchTerm] = useState("");
-    const [page, setPage] = useState(0);
+    const [page, setPage] = useState(1);
+    const [selectedCategory, setSelectedCategory] = useState<string>("");
 
     const { data, isLoading, isError } = useQuery({
         queryKey: ["jobs", searchTerm, page],
-        queryFn: () => fetchJobs({ search: searchTerm, page }),
+        queryFn: () => fetchJobs({ search: searchTerm, page, limit: 12 }),
     });
 
-    const jobs = data?.data || [];
+    const jobs: Job[] = data?.data || [];
+    const pagination = data?.pagination;
+
+    // Get unique categories from jobs
+    const categories = [...new Set(jobs.map((job: Job) => job.category_name).filter(Boolean))];
+
+    const filteredJobs = selectedCategory
+      ? jobs.filter((job: Job) => job.category_name === selectedCategory)
+      : jobs;
 
     return (
         <div className="min-h-screen bg-background text-foreground selection:bg-indigo-500/30">
@@ -52,71 +88,157 @@ const Jobs = () => {
 
                 </div>
 
+                {/* Category Filter */}
+                {categories.length > 0 && (
+                    <div className="mb-8 flex flex-wrap gap-2 justify-center">
+                        <button
+                            onClick={() => setSelectedCategory("")}
+                            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                                selectedCategory === ""
+                                    ? "bg-teal-500 text-white"
+                                    : "bg-card/50 border border-border hover:border-teal-500/50"
+                            }`}
+                        >
+                            All Categories
+                        </button>
+                        {categories.map((cat) => (
+                            <button
+                                key={cat}
+                                onClick={() => setSelectedCategory(cat as string)}
+                                className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                                    selectedCategory === cat
+                                        ? "bg-teal-500 text-white"
+                                        : "bg-card/50 border border-border hover:border-teal-500/50"
+                                }`}
+                            >
+                                {cat}
+                            </button>
+                        ))}
+                    </div>
+                )}
+
                 {isLoading ? (
-                    <div className="grid grid-cols-1 gap-6 max-w-4xl mx-auto">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {[...Array(6)].map((_, i) => (
-                            <Skeleton key={i} className="h-40 w-full rounded-2xl bg-card border border-border" />
+                            <Skeleton key={i} className="h-80 w-full rounded-2xl bg-card border border-border" />
                         ))}
                     </div>
                 ) : isError ? (
-                    <div className="text-center py-20 bg-card/30 rounded-3xl border border-border max-w-4xl mx-auto">
+                    <div className="text-center py-20 bg-card/30 rounded-3xl border border-border">
                         <p className="text-red-400 text-lg">Error loading jobs. Please try again later.</p>
                     </div>
-                ) : jobs.length === 0 ? (
-                    <div className="text-center py-20 bg-card/30 rounded-3xl border border-border max-w-4xl mx-auto">
-                        <Briefcase className="w-12 h-12 text-slate-500 mx-auto mb-4" />
-                        <p className="text-slate-400 text-lg">No jobs found matching your search.</p>
+                ) : filteredJobs.length === 0 ? (
+                    <div className="text-center py-20 bg-card/30 rounded-3xl border border-border">
+                        <Briefcase className="w-16 h-16 text-slate-500 mx-auto mb-4" />
+                        <h3 className="text-xl font-semibold mb-2">No jobs found</h3>
+                        <p className="text-slate-400">Try adjusting your search or filter criteria.</p>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 gap-6 max-w-4xl mx-auto">
-                        {jobs.map((job: any) => (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {filteredJobs.map((job: Job) => (
                             <Link
                                 key={job.id}
                                 to={`/jobs/${job.id}`}
-                                className="group relative backdrop-blur-md bg-card/50 border border-border p-6 md:p-8 rounded-2xl transition-all duration-300 hover:border-teal-500/50 hover:bg-card/80 hover:shadow-2xl hover:shadow-teal-500/10 hover:scale-[1.01] cursor-pointer block"
+                                className="group relative backdrop-blur-md bg-card/50 border border-border rounded-2xl overflow-hidden transition-all duration-300 hover:border-teal-500/50 hover:bg-card/80 hover:shadow-2xl hover:shadow-teal-500/10 hover:-translate-y-1 cursor-pointer block"
                             >
-                                <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
-                                    <div className="space-y-3">
-                                        <div className="flex items-center gap-3">
-                                            <h3 className="text-2xl font-bold group-hover:text-teal-400 transition-colors">
+                                {/* Job Header with Company */}
+                                <div className="p-6">
+                                    <div className="flex items-start gap-4 mb-4">
+                                        <div className="w-14 h-14 rounded-xl bg-slate-100 dark:bg-white/5 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                                            {job.company_logo ? (
+                                                <img src={job.company_logo} alt={job.company_name || ''} className="w-full h-full object-cover" />
+                                            ) : (
+                                                <Building2 className="w-7 h-7 text-slate-400" />
+                                            )}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <h3 className="font-semibold text-lg leading-tight group-hover:text-teal-400 transition-colors line-clamp-2">
                                                 {job.job_title}
                                             </h3>
-                                            <Badge variant="outline" className="bg-teal-500/10 text-teal-400 border-teal-500/20">
-                                                New
-                                            </Badge>
-                                        </div>
-
-                                        <div className="flex flex-wrap items-center gap-y-2 gap-x-6 text-slate-400 text-sm">
-                                            <div className="flex items-center">
-                                                <MapPin className="w-4 h-4 mr-2 text-teal-500/60" />
-                                                {job.address || "Remote"}
-                                            </div>
-                                            <div className="flex items-center">
-                                                <DollarSign className="w-4 h-4 mr-2 text-teal-500/60" />
-                                                {job.budget ? `$${job.budget}` : "Competitive"}
-                                            </div>
-                                            <div className="flex items-center">
-                                                <Calendar className="w-4 h-4 mr-2 text-teal-500/60" />
-                                                {job.create_date ? new Date(job.create_date).toLocaleDateString() : "Recently"}
-                                            </div>
+                                            <p className="text-sm text-slate-400 mt-1">{job.company_name}</p>
                                         </div>
                                     </div>
 
-                                    <div className="flex items-center gap-4">
-                                        <div className="whitespace-nowrap px-6 py-2 rounded-xl border border-border bg-card/50 hover:bg-card/80 hover:border-teal-500/30 transition-all font-medium flex items-center group/btn text-center">
-                                            Apply Now
-                                            <ArrowRight className="w-4 h-4 ml-2 transform group-hover/btn:translate-x-1 transition-transform" />
+                                    {/* Job Meta */}
+                                    <div className="flex flex-wrap gap-2 mb-4">
+                                        <Badge variant="secondary" className="bg-teal-500/10 text-teal-400 border-teal-500/20">
+                                            {job.job_type}
+                                        </Badge>
+                                        {job.category_name && (
+                                            <Badge variant="outline" className="text-slate-400">
+                                                {job.category_name}
+                                            </Badge>
+                                        )}
+                                    </div>
+
+                                    {/* Job Details */}
+                                    <div className="space-y-2 text-sm">
+                                        <div className="flex items-center gap-2 text-slate-400">
+                                            <MapPin className="w-4 h-4" />
+                                            <span className="truncate">{job.job_location}</span>
+                                        </div>
+                                        <div className="flex items-center gap-2 text-slate-400">
+                                            <DollarSign className="w-4 h-4" />
+                                            <span>{job.salary_range || 'Negotiable'}</span>
+                                        </div>
+                                        <div className="flex items-center gap-2 text-slate-400">
+                                            <Users className="w-4 h-4" />
+                                            <span>{job.vacancy} {job.vacancy === 1 ? 'Position' : 'Positions'}</span>
+                                        </div>
+                                        <div className="flex items-center gap-2 text-slate-400">
+                                            <Clock className="w-4 h-4" />
+                                            <span>Deadline: {new Date(job.application_deadline).toLocaleDateString()}</span>
                                         </div>
                                     </div>
                                 </div>
-                                <div className="mt-6 pt-6 border-t border-border">
-                                    <p className="text-slate-400 line-clamp-2 italic text-sm md:text-base">
-                                        "{job.job_details || "Looking for a qualified professional to join our team. Excellent opportunity with competitive benefits and room for growth."}"
-                                    </p>
+
+                                {/* Footer */}
+                                <div className="px-6 py-4 border-t border-border bg-card/30 flex items-center justify-between">
+                                    <span className="text-xs text-slate-500">
+                                        Posted {new Date(job.created_at).toLocaleDateString()}
+                                    </span>
+                                    <Button variant="ghost" size="sm" className="text-teal-400 hover:text-teal-300 hover:bg-teal-500/10">
+                                        View Details
+                                        <ArrowRight className="w-4 h-4 ml-1" />
+                                    </Button>
                                 </div>
                             </Link>
                         ))}
+                    </div>
+                )}
 
+                {/* Pagination */}
+                {pagination && pagination.total_pages > 1 && (
+                    <div className="flex justify-center gap-2 mt-12">
+                        <Button
+                            variant="outline"
+                            onClick={() => setPage(p => Math.max(1, p - 1))}
+                            disabled={page === 1}
+                        >
+                            Previous
+                        </Button>
+                        <div className="flex items-center gap-2">
+                            {[...Array(pagination.total_pages)].map((_, i) => (
+                                <button
+                                    key={i + 1}
+                                    onClick={() => setPage(i + 1)}
+                                    className={`w-10 h-10 rounded-lg font-medium transition-all ${
+                                        page === i + 1
+                                            ? 'bg-teal-500 text-white'
+                                            : 'bg-card/50 border border-border hover:border-teal-500/50'
+                                    }`}
+                                >
+                                    {i + 1}
+                                </button>
+                            ))}
+                        </div>
+                        <Button
+                            variant="outline"
+                            onClick={() => setPage(p => Math.min(pagination.total_pages, p + 1))}
+                            disabled={page === pagination.total_pages}
+                        >
+                            Next
+                        </Button>
                     </div>
                 )}
             </main>
