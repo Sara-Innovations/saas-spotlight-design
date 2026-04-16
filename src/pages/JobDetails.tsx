@@ -15,12 +15,21 @@ import {
   Target, Award, HeartHandshake, FileText, Share2, Bookmark
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useAuth } from "@/contexts/AuthContext";
+import { Textarea } from "@/components/ui/textarea";
 
 
 
 const JobDetails = () => {
   const { id } = useParams();
+  const { user } = useAuth();
   const [applied, setApplied] = useState(false);
+  const [formData, setFormData] = useState({
+    name: user?.customername || "",
+    email: user?.customeremail || "",
+    phone: user?.customermobile || "",
+    coverLetter: ""
+  });
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["job", id],
@@ -249,22 +258,50 @@ const JobDetails = () => {
                 ) : (
                   <form onSubmit={(e) => { e.preventDefault(); setApplied(true); }} className="space-y-4">
                     <div>
-                      <label className="text-sm font-medium">Full Name *</label>
-                      <Input className="mt-1" placeholder="Your full name" required />
+                      <label className="text-sm font-medium text-foreground">Full Name *</label>
+                      <Input 
+                        className="mt-1" 
+                        placeholder="Your full name" 
+                        required 
+                        value={formData.name}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      />
                     </div>
                     <div>
-                      <label className="text-sm font-medium">Email *</label>
-                      <Input className="mt-1" type="email" placeholder="your@email.com" required />
+                      <label className="text-sm font-medium text-foreground">Email *</label>
+                      <Input 
+                        className="mt-1" 
+                        type="email" 
+                        placeholder="your@email.com" 
+                        required 
+                        value={formData.email}
+                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      />
                     </div>
                     <div>
-                      <label className="text-sm font-medium">Phone *</label>
-                      <Input className="mt-1" placeholder="Your phone number" required />
+                      <label className="text-sm font-medium text-foreground">Phone *</label>
+                      <Input 
+                        className="mt-1" 
+                        placeholder="Your phone number" 
+                        required 
+                        value={formData.phone}
+                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      />
                     </div>
                     <div>
-                      <label className="text-sm font-medium">Resume / CV</label>
+                      <label className="text-sm font-medium text-foreground">Cover Letter</label>
+                      <Textarea 
+                        className="mt-1 min-h-[120px] resize-none" 
+                        placeholder="Write a brief cover letter..." 
+                        value={formData.coverLetter}
+                        onChange={(e) => setFormData({ ...formData, coverLetter: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-foreground">Resume / CV</label>
                       <Input className="mt-1" type="file" accept=".pdf,.doc,.docx" />
                     </div>
-                    <Button type="submit" className="gradient-bg w-full">
+                    <Button type="submit" className="gradient-bg w-full h-11 font-bold">
                       Submit Application
                     </Button>
                   </form>

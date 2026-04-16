@@ -253,13 +253,13 @@ export interface ProductReviewsResponse {
 export const fetchProductReviews = async (productId: string): Promise<ProductReviewsResponse> => {
   // Use new API endpoint that properly fetches from product_rating table
   const response = await fetch(`${BARGAIN_API_BASE_URL.replace('/api', '')}/api_products/reviews/${productId}`);
-  
+
   if (!response.ok) {
     throw new Error("Failed to fetch product reviews");
   }
-  
+
   const data = await response.json();
-  
+
   // Transform the response to match expected format
   return {
     average_rating: data.data?.average_rating || 0,
@@ -314,10 +314,10 @@ export interface Cart {
 
 export const getCart = (): Cart => {
   if (typeof window === 'undefined') return { items: [], total_items: 0, total_price: 0 };
-  
+
   const cartData = localStorage.getItem('bargain_cart');
   if (!cartData) return { items: [], total_items: 0, total_price: 0 };
-  
+
   try {
     const cart = JSON.parse(cartData);
     return {
@@ -333,7 +333,7 @@ export const getCart = (): Cart => {
 export const addToCart = (product: any, quantity: number = 1): Cart => {
   const cart = getCart();
   const existingItemIndex = cart.items.findIndex(item => item.product_id === product.product_id);
-  
+
   if (existingItemIndex >= 0) {
     // Update existing item
     const newQuantity = Math.min(cart.items[existingItemIndex].quantity + quantity, product.qty || 999);
@@ -352,50 +352,50 @@ export const addToCart = (product: any, quantity: number = 1): Cart => {
     };
     cart.items.push(cartItem);
   }
-  
+
   // Recalculate totals
   cart.total_items = cart.items.reduce((sum, item) => sum + item.quantity, 0);
   cart.total_price = cart.items.reduce((sum, item) => sum + (item.display_price * item.quantity), 0);
-  
+
   // Save to localStorage
   localStorage.setItem('bargain_cart', JSON.stringify(cart));
-  
+
   return cart;
 };
 
 export const updateCartItemQuantity = (productId: string, quantity: number): Cart => {
   const cart = getCart();
   const itemIndex = cart.items.findIndex(item => item.product_id === productId);
-  
+
   if (itemIndex >= 0) {
     if (quantity <= 0) {
       cart.items.splice(itemIndex, 1);
     } else {
       cart.items[itemIndex].quantity = Math.min(quantity, cart.items[itemIndex].max_quantity);
     }
-    
+
     // Recalculate totals
     cart.total_items = cart.items.reduce((sum, item) => sum + item.quantity, 0);
     cart.total_price = cart.items.reduce((sum, item) => sum + (item.display_price * item.quantity), 0);
-    
+
     // Save to localStorage
     localStorage.setItem('bargain_cart', JSON.stringify(cart));
   }
-  
+
   return cart;
 };
 
 export const removeFromCart = (productId: string): Cart => {
   const cart = getCart();
   cart.items = cart.items.filter(item => item.product_id !== productId);
-  
+
   // Recalculate totals
   cart.total_items = cart.items.reduce((sum, item) => sum + item.quantity, 0);
   cart.total_price = cart.items.reduce((sum, item) => sum + (item.display_price * item.quantity), 0);
-  
+
   // Save to localStorage
   localStorage.setItem('bargain_cart', JSON.stringify(cart));
-  
+
   return cart;
 };
 
@@ -418,10 +418,10 @@ export interface WishlistItem {
 
 export const getWishlist = (): WishlistItem[] => {
   if (typeof window === 'undefined') return [];
-  
+
   const wishlistData = localStorage.getItem('bargain_wishlist');
   if (!wishlistData) return [];
-  
+
   try {
     return JSON.parse(wishlistData);
   } catch {
@@ -432,7 +432,7 @@ export const getWishlist = (): WishlistItem[] => {
 export const addToWishlist = (product: any): WishlistItem[] => {
   const wishlist = getWishlist();
   const exists = wishlist.some(item => item.product_id === product.product_id);
-  
+
   if (!exists) {
     const wishlistItem: WishlistItem = {
       product_id: product.product_id,
@@ -446,7 +446,7 @@ export const addToWishlist = (product: any): WishlistItem[] => {
     wishlist.push(wishlistItem);
     localStorage.setItem('bargain_wishlist', JSON.stringify(wishlist));
   }
-  
+
   return wishlist;
 };
 
