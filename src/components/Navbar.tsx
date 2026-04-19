@@ -1,9 +1,9 @@
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, ChevronDown, Sun, Moon, ShoppingCart, Heart, User, LayoutDashboard, LogOut } from "lucide-react";
+import { Menu, X, ChevronDown, Sun, Moon, ShoppingCart, Heart, User, LayoutDashboard, LogOut, Trash2 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useEffect, useState, useRef } from "react";
-import { getCart, getWishlist } from "@/lib/api";
+import { getCart, getWishlist, removeFromCart } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { LoginModal } from "@/components/LoginModal";
 import { RegisterModal } from "@/components/RegisterModal";
@@ -22,12 +22,14 @@ const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
-  const [cart, setCart] = useState({ items: [], total_items: 0, total_price: 0 });
+  const [cartOpen, setCartOpen] = useState(false);
+  const [cart, setCart] = useState({ items: [] as any[], total_items: 0, total_price: 0 });
   const [wishlist, setWishlist] = useState([]);
   const { theme, setTheme } = useTheme();
   const location = useLocation();
-  const { isAuthenticated, user, openLoginModal, openRegisterModal, logout, handleSSOToDashboard } = useAuth();
+  const { isAuthenticated, user, token, openLoginModal, openRegisterModal, logout, handleSSOToDashboard } = useAuth();
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const cartDropdownRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
   // Avoid hydration mismatch
@@ -40,6 +42,9 @@ const Navbar = () => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setProfileOpen(false);
+      }
+      if (cartDropdownRef.current && !cartDropdownRef.current.contains(event.target as Node)) {
+        setCartOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -54,6 +59,36 @@ const Navbar = () => {
       description: "You have been successfully logged out of your account.",
       variant: "default",
     });
+  };
+
+  const handleRemoveItem = (e: React.MouseEvent, productId: string) => {
+    e.stopPropagation();
+    removeFromCart(productId);
+    window.dispatchEvent(new Event('cartUpdate'));
+    toast({
+      title: "Item Removed",
+      description: "Product has been removed from your cart.",
+    });
+  };
+
+  const handleCartClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const API_BASE_URL = import.meta.env.VITE_BARGAIN_URL || 'http://bargainshop.test';
+    
+    let targetPath = "shop/cart";
+    if (cart.total_items > 0) {
+      const firstItem = cart.items[0];
+      // Construct path with first product in cart as the "selected product"
+      targetPath += `?pid=${firstItem.product_id}${firstItem.quantity > 1 ? `&qty=${firstItem.quantity}` : ""}`;
+    }
+
+    if (isAuthenticated && token) {
+      // Use SSO Bridge for logged in users to sync session
+      window.location.href = `${API_BASE_URL}/api/Api_auth/sso?token=${token}&redirect=${encodeURIComponent(targetPath)}`;
+    } else {
+      // Direct redirect for guest users
+      window.location.href = `${API_BASE_URL}/${targetPath}`;
+    }
   };
 
   // Load cart and wishlist data
@@ -125,14 +160,96 @@ const Navbar = () => {
             )}
 
             {/* Cart Button */}
-            <Link to="/cart" className="relative p-2 rounded-full hover:bg-muted transition-colors">
-              <ShoppingCart className="w-5 h-5" />
-              {cart.total_items > 0 && (
-                <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-[10px] font-bold rounded-full w-4.5 h-4.5 flex items-center justify-center border-2 border-background">
-                  {cart.total_items}
-                </span>
-              )}
-            </Link>
+            <div className="relative" ref={cartDropdownRef}>
+              <button 
+                onClick={() => {
+                  setCartOpen(!cartOpen);
+                  setProfileOpen(false);
+                }}
+                className={`relative p-2 rounded-full transition-colors ${
+                  cartOpen ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'
+                }`}
+              >
+                <ShoppingCart className="w-5 h-5" />
+                {cart.total_items > 0 && (
+                  <span className={`absolute -top-1 -right-1 text-[10px] font-bold rounded-full w-4.5 h-4.5 flex items-center justify-center border-2 border-background ${
+                    cartOpen ? 'bg-background text-primary' : 'bg-primary text-primary-foreground'
+                  }`}>
+                    {cart.total_items}
+                  </span>
+                )}
+              </button>
+
+              <AnimatePresence>
+                {cartOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                    transition={{ duration: 0.2 }}
+                    className="absolute right-0 mt-2 w-80 bg-background border border-border rounded-xl shadow-xl overflow-hidden z-[60]"
+                  >
+                    <div className="px-4 py-3 border-b border-border/50 bg-muted/30">
+                      <div className="flex items-center justify-between">
+                        <span className="font-semibold text-sm">Shopping Cart</span>
+                        <span className="text-xs text-muted-foreground">{cart.total_items} items</span>
+                      </div>
+                    </div>
+
+                    <div className="max-h-80 overflow-y-auto p-2">
+                      {cart.items.length > 0 ? (
+                        <div className="space-y-1">
+                          {cart.items.map((item) => (
+                            <div key={item.product_id} className="flex gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                              <div className="h-12 w-12 rounded-md overflow-hidden flex-shrink-0 bg-muted">
+                                <img src={item.image_url} alt={item.product_name} className="h-full w-full object-cover" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-xs font-medium truncate">{item.product_name}</p>
+                                <p className="text-[10px] text-muted-foreground">{item.business_name}</p>
+                                <div className="flex justify-between items-center mt-1">
+                                  <span className="text-xs font-bold text-primary">${item.price}</span>
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-[10px] text-muted-foreground">Qty: {item.quantity}</span>
+                                    <button 
+                                      onClick={(e) => handleRemoveItem(e, item.product_id)}
+                                      className="p-1 hover:text-red-500 transition-colors"
+                                      title="Remove item"
+                                    >
+                                      <Trash2 className="w-3 h-3" />
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="py-8 text-center">
+                          <ShoppingCart className="w-10 h-10 mx-auto text-muted-foreground/30 mb-2" />
+                          <p className="text-sm text-muted-foreground">Your cart is empty</p>
+                        </div>
+                      )}
+                    </div>
+
+                    {cart.items.length > 0 && (
+                      <div className="p-3 border-t border-border bg-muted/20">
+                        <div className="flex justify-between items-center mb-3 px-1">
+                          <span className="text-sm font-medium">Total:</span>
+                          <span className="text-sm font-bold text-primary">${cart.total_price.toFixed(2)}</span>
+                        </div>
+                        <Button 
+                          onClick={handleCartClick}
+                          className="w-full h-10 rounded-lg font-bold text-sm shadow-md shadow-primary/20"
+                        >
+                          Checkout Now
+                        </Button>
+                      </div>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
 
             {/* Wishlist Button */}
             <Link to="/wishlist" className="relative p-2 rounded-full hover:bg-muted transition-colors">
@@ -255,7 +372,13 @@ const Navbar = () => {
 
               <div className="mt-6 pt-6 border-t border-border space-y-4">
                 <div className="grid grid-cols-2 gap-3">
-                  <Link to="/cart" onClick={() => setMobileOpen(false)}>
+                  <Link 
+                    to="/cart" 
+                    onClick={(e) => {
+                      setMobileOpen(false);
+                      handleCartClick(e);
+                    }}
+                  >
                     <Button variant="outline" className="w-full h-12 rounded-xl flex items-center gap-2">
                       <ShoppingCart className="w-4 h-4" />
                       Cart {cart.total_items > 0 && `(${cart.total_items})`}

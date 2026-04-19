@@ -1,5 +1,8 @@
-const TRADING_API_BASE_URL = "http://tradinghub.test/api";
-const BARGAIN_API_BASE_URL = "http://bargainshop.test/api";
+const BARGAIN_URL = import.meta.env.VITE_BARGAIN_URL || "http://bargainshop.test";
+const TRADING_URL = import.meta.env.VITE_TRADING_URL || "http://tradinghub.test";
+
+const TRADING_API_BASE_URL = `${TRADING_URL}/api`;
+const BARGAIN_API_BASE_URL = `${BARGAIN_URL}/api`;
 const API_BASE_URL = TRADING_API_BASE_URL;
 
 export interface Pagination {
@@ -195,7 +198,7 @@ export const fetchJobs = async ({
   if (search) params.append("search", search);
 
   // Use bargainshop API endpoint
-  const response = await fetch(`http://bargainshop.test/api_jobs/list?${params.toString()}`);
+  const response = await fetch(`${BARGAIN_URL}/api_jobs/list?${params.toString()}`);
   if (!response.ok) {
     throw new Error("Failed to fetch jobs");
   }
@@ -203,7 +206,7 @@ export const fetchJobs = async ({
 };
 
 export const fetchJobDetails = async (id: string) => {
-  const response = await fetch(`http://bargainshop.test/api_jobs/details/${id}`);
+  const response = await fetch(`${BARGAIN_URL}/api_jobs/details/${id}`);
   if (!response.ok) {
     throw new Error("Failed to fetch job details");
   }
