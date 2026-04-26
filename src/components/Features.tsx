@@ -42,7 +42,7 @@ const Features = () => (
           Everything you need to grow
         </h2>
         <p className="text-muted-foreground text-lg">
-          One platform replaces a dozen tools. Marketing, sales, service — all connected.
+          One platform replaces a dozen tools. Marketing, sales, services — all connected.
         </p>
       </div>
 
