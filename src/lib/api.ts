@@ -1,8 +1,10 @@
 const BARGAIN_URL = import.meta.env.VITE_BARGAIN_URL || "http://bargainshop.test";
 const TRADING_URL = import.meta.env.VITE_TRADING_URL || "http://tradinghub.test";
 
-const TRADING_API_BASE_URL = `${TRADING_URL}/api`;
-const BARGAIN_API_BASE_URL = `${BARGAIN_URL}/api`;
+// Use relative API path for development (proxied by Vite), full URL for production
+const isDevelopment = import.meta.env.DEV;
+const TRADING_API_BASE_URL = isDevelopment ? "/api" : `${TRADING_URL}/api`;
+const BARGAIN_API_BASE_URL = isDevelopment ? "/api" : `${BARGAIN_URL}/api`;
 const API_BASE_URL = TRADING_API_BASE_URL;
 
 export interface Pagination {
@@ -59,22 +61,33 @@ export interface ApiResponse<T> {
 
 export const fetchBusinesses = async ({
   search,
-  category_name,
+  category_id,
+  sub_category_id,
   location,
-  page = 0
+  page = 1,
+  limit = 10
 }: {
   search?: string,
-  category_name?: string,
+  category_id?: string,
+  sub_category_id?: string,
   location?: string,
-  page?: number
+  page?: number,
+  limit?: number
 }) => {
   const params = new URLSearchParams();
-  if (search) params.append("search", search);
-  if (category_name && category_name !== "All Categories") params.append("category_name", category_name);
-  if (location) params.append("locationsearch", location);
   params.append("page", page.toString());
+  params.append("limit", limit.toString());
 
-  const response = await fetch(`${API_BASE_URL}/businesses?${params.toString()}`);
+  // If any search criteria is provided, use the search endpoint
+  const isSearching = search || category_id || sub_category_id || location;
+  const baseUrl = isSearching ? `${BARGAIN_URL}/api/business/search` : `${BARGAIN_URL}/api/business/list`;
+
+  if (search) params.append("q", search);
+  if (category_id && category_id !== "all") params.append("category_id", category_id);
+  if (sub_category_id && sub_category_id !== "all") params.append("sub_category_id", sub_category_id);
+  if (location) params.append("location", location);
+
+  const response = await fetch(`${baseUrl}?${params.toString()}`);
   if (!response.ok) {
     throw new Error("Failed to fetch businesses");
   }
@@ -90,7 +103,7 @@ export const fetchBusinessDetails = async (id: string) => {
 };
 
 export const fetchCategories = async () => {
-  const response = await fetch(`${API_BASE_URL}/categories`);
+  const response = await fetch(`${BARGAIN_URL}/api/business/categories`);
   if (!response.ok) {
     throw new Error("Failed to fetch categories");
   }
@@ -98,7 +111,9 @@ export const fetchCategories = async () => {
 };
 
 export const fetchSubCategories = async (categoryId: string) => {
-  const response = await fetch(`${API_BASE_URL}/sub-categories?category_id=${categoryId}`);
+  if (!categoryId || categoryId === "all") return { status: "success", data: [] };
+  
+  const response = await fetch(`${BARGAIN_URL}/api/business/sub-categories?category_id=${categoryId}`);
   if (!response.ok) {
     throw new Error("Failed to fetch sub-categories");
   }

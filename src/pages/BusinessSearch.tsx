@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Search, MapPin, Phone, Star, ChevronRight, Loader2, Globe } from "lucide-react";
 import { categories as staticCategories } from "@/lib/mockData";
 import { useQuery } from "@tanstack/react-query";
-import { fetchBusinesses, fetchCategories } from "@/lib/api";
+import { fetchBusinesses, fetchCategories, fetchSubCategories } from "@/lib/api";
 import { Skeleton } from "@/components/ui/skeleton";
 import { 
   Pagination, 
@@ -46,13 +46,20 @@ const BusinessCardSkeleton = () => (
 
 const BusinessSearch = () => {
   const [search, setSearch] = useState("");
-  const [category, setCategory] = useState("All Categories");
+  const [categoryId, setCategoryId] = useState("all");
+  const [subCategoryId, setSubCategoryId] = useState("all");
   const [location, setLocation] = useState("");
-  const [page, setPage] = useState(0);
+  const [page, setPage] = useState(1);
 
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ["businesses", search, category, location, page],
-    queryFn: () => fetchBusinesses({ search, category_name: category, location, page }),
+    queryKey: ["businesses", search, categoryId, subCategoryId, location, page],
+    queryFn: () => fetchBusinesses({ 
+      search, 
+      category_id: categoryId, 
+      sub_category_id: subCategoryId, 
+      location, 
+      page 
+    }),
   });
 
   const { data: categoriesData } = useQuery({
@@ -60,16 +67,22 @@ const BusinessSearch = () => {
     queryFn: fetchCategories,
   });
 
-  // Dynamic categories with "All Categories" prepended
-  const dynamicCategories = categoriesData?.data 
-    ? ["All Categories", ...categoriesData.data.map(c => c.category_name)]
-    : ["All Categories"];
+  const { data: subCategoriesData, isLoading: isLoadingSub } = useQuery({
+    queryKey: ["sub-categories", categoryId],
+    queryFn: () => fetchSubCategories(categoryId),
+    enabled: categoryId !== "all",
+  });
 
-
-  // Reset page when search, category, or location changes
+  // Reset subcategory and page when category changes
   useEffect(() => {
-    setPage(0);
-  }, [search, category, location]);
+    setSubCategoryId("all");
+    setPage(1);
+  }, [categoryId]);
+
+  // Reset page when other filters change
+  useEffect(() => {
+    setPage(1);
+  }, [search, subCategoryId, location]);
 
 
   const businessesResult = data?.data || [];
@@ -103,16 +116,35 @@ const BusinessSearch = () => {
                   onChange={(e) => setSearch(e.target.value)}
                 />
               </div>
-              <Select value={category} onValueChange={setCategory}>
+              <Select value={categoryId} onValueChange={setCategoryId}>
                 <SelectTrigger className="md:w-48 border-0 bg-muted/50">
-                  <SelectValue />
+                  <SelectValue placeholder="All Categories" />
                 </SelectTrigger>
                 <SelectContent>
-                  {dynamicCategories.map((c) => (
-                    <SelectItem key={c} value={c}>{c}</SelectItem>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  {categoriesData?.data?.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>{c.category_name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+
+              {categoryId !== "all" && (
+                <Select value={subCategoryId} onValueChange={setSubCategoryId}>
+                  <SelectTrigger className="md:w-48 border-0 bg-muted/50">
+                    <SelectValue placeholder="All Sub Categories" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Sub Categories</SelectItem>
+                    {isLoadingSub ? (
+                      <SelectItem value="loading" disabled>Loading...</SelectItem>
+                    ) : (
+                      subCategoriesData?.data?.map((sc: any) => (
+                        <SelectItem key={sc.id} value={sc.id}>{sc.subcategory_name}</SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+              )}
               <div className="flex-1 relative">
                 <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
@@ -135,7 +167,7 @@ const BusinessSearch = () => {
             {isLoading ? (
               "Searching..." 
             ) : pagination ? (
-              `Showing ${Math.min(page * pagination.limit + 1, pagination.total)} - ${Math.min((page + 1) * pagination.limit, pagination.total)} of ${pagination.total} businesses`
+              `Showing ${Math.min((page - 1) * pagination.limit + 1, pagination.total)} - ${Math.min(page * pagination.limit, pagination.total)} of ${pagination.total} businesses`
             ) : (
               `${businessesResult.length} businesses found`
             )}
@@ -235,9 +267,9 @@ const BusinessSearch = () => {
                           href="#" 
                           onClick={(e) => {
                             e.preventDefault();
-                            if (page > 0) setPage(page - 1);
+                            if (page > 1) setPage(page - 1);
                           }}
-                          className={page === 0 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                          className={page === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
                         />
                       </PaginationItem>
                       
@@ -252,10 +284,10 @@ const BusinessSearch = () => {
                             <PaginationItem key={i}>
                               <PaginationLink 
                                 href="#"
-                                isActive={page === i}
+                                isActive={page === i + 1}
                                 onClick={(e) => {
                                   e.preventDefault();
-                                  setPage(i);
+                                  setPage(i + 1);
                                 }}
                                 className="cursor-pointer"
                               >
@@ -281,9 +313,9 @@ const BusinessSearch = () => {
                           href="#" 
                           onClick={(e) => {
                             e.preventDefault();
-                            if (page < pagination.total_pages - 1) setPage(page + 1);
+                            if (page < pagination.total_pages) setPage(page + 1);
                           }}
-                          className={page === pagination.total_pages - 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                          className={page === pagination.total_pages ? "pointer-events-none opacity-50" : "cursor-pointer"}
                         />
                       </PaginationItem>
                     </PaginationContent>
