@@ -5,7 +5,8 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { MapPin, Phone, Mail, Globe, Clock, Star, ArrowLeft, Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { fetchBusinessDetails } from "@/lib/api";
+import { fetchBusinessDetails, BARGAIN_URL } from "@/lib/api";
+import { useAuth } from "@/contexts/AuthContext";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const tabs = ["About", "Services", "Our Clients", "Gallery", "Our Expert", "Contact"];
@@ -51,6 +52,7 @@ const BusinessDetailsSkeleton = () => (
 
 const BusinessDetails = () => {
   const { id } = useParams();
+  const { isAuthenticated, token } = useAuth();
   const [activeTab, setActiveTab] = useState("About");
 
   const { data, isLoading, error } = useQuery({
@@ -96,11 +98,11 @@ const BusinessDetails = () => {
               <ArrowLeft className="w-4 h-4" /> Back to Search
             </Link>
             <p className="text-white/70 italic text-sm">Hey There, We Are</p>
-            <h1 className="text-3xl md:text-4xl font-bold mt-1">{business.cname}</h1>
+            <h1 className="text-3xl md:text-4xl font-bold mt-1">{business.business_name}</h1>
             <div className="flex flex-wrap items-center gap-6 mt-6 text-sm">
               <div className="flex items-center gap-2">
                 <MapPin className="w-4 h-4" />
-                <span>{business.streetnumber} {business.streetname}, {business.businesssuberb}, {business.state} {business.postcode}</span>
+                <span>{business.business_address}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Clock className="w-4 h-4" />
@@ -114,16 +116,19 @@ const BusinessDetails = () => {
                 <span className="text-white/60">(12 reviews)</span>
               </div>
             </div>
-            
+
             <div className="mt-8">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="bg-white/10 hover:bg-white/20 border-white/20 text-white"
                 asChild
               >
-                <a 
-                  href={`http://tradinghub.test/WebsiteTheme/index/${business.id}`} 
-                  target="_blank" 
+                <a
+                  href={isAuthenticated && token 
+                    ? `${BARGAIN_URL}/api/Api_auth/sso?token=${token}&redirect=${encodeURIComponent(`website?com_id=${business.id}`)}`
+                    : `${BARGAIN_URL}/website?com_id=${business.id}`
+                  }
+                  target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2"
                 >
@@ -143,11 +148,10 @@ const BusinessDetails = () => {
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`px-5 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
-                  activeTab === tab
-                    ? "border-primary text-primary bg-primary/5"
-                    : "border-transparent text-muted-foreground hover:text-foreground"
-                }`}
+                className={`px-5 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${activeTab === tab
+                  ? "border-primary text-primary bg-primary/5"
+                  : "border-transparent text-muted-foreground hover:text-foreground"
+                  }`}
               >
                 {tab}
               </button>
@@ -162,16 +166,16 @@ const BusinessDetails = () => {
           {activeTab === "About" && (
             <div className="grid md:grid-cols-2 gap-10">
               <div>
-                <h2 className="text-2xl font-bold text-primary mb-4">About {business.cname}</h2>
-                <div 
+                <h2 className="text-2xl font-bold text-primary mb-4"> {business.business_name}</h2>
+                <div
                   className="text-muted-foreground mb-4 prose prose-sm max-w-none"
-                  dangerouslySetInnerHTML={{ __html: about?.details || "No description provided." }}
+                  dangerouslySetInnerHTML={{ __html: business?.business_about || "No description provided." }}
                 />
                 <div className="mt-6 space-y-3">
-                  {business.cemail && (
+                  {business.seller_email && (
                     <div className="flex items-center gap-3 text-sm">
                       <Mail className="w-4 h-4 text-primary" />
-                      <span>{business.cemail}</span>
+                      <span>{business.seller_email}</span>
                     </div>
                   )}
                   {business.cwebsite && (
@@ -184,23 +188,23 @@ const BusinessDetails = () => {
                   )}
                   <div className="flex items-center gap-3 text-sm">
                     <MapPin className="w-4 h-4 text-primary" />
-                    <span>{business.streetnumber} {business.streetname}, {business.businesssuberb}, {business.state}</span>
+                    <span>{business.business_address}</span>
                   </div>
                 </div>
               </div>
               <div className="bg-muted rounded-2xl overflow-hidden flex items-center justify-center relative min-h-[300px]">
                 {business.cmap ? (
                   business.cmap.startsWith('http') ? (
-                    <iframe 
-                      src={business.cmap} 
-                      className="absolute inset-0 w-full h-full border-0" 
+                    <iframe
+                      src={business.cmap}
+                      className="absolute inset-0 w-full h-full border-0"
                       allowFullScreen
                       loading="lazy"
                     />
                   ) : (
-                    <div 
-                      className="absolute inset-0 w-full h-full [&_iframe]:w-full [&_iframe]:h-full [&_iframe]:border-0" 
-                      dangerouslySetInnerHTML={{ __html: business.cmap }} 
+                    <div
+                      className="absolute inset-0 w-full h-full [&_iframe]:w-full [&_iframe]:h-full [&_iframe]:border-0"
+                      dangerouslySetInnerHTML={{ __html: business.cmap }}
                     />
                   )
                 ) : (
@@ -221,7 +225,7 @@ const BusinessDetails = () => {
                         <Star className="w-5 h-5 text-primary-foreground" />
                       </div>
                       <h3 className="font-semibold">{service.title}</h3>
-                      <div 
+                      <div
                         className="text-sm text-muted-foreground mt-1 line-clamp-3"
                         dangerouslySetInnerHTML={{ __html: service.details }}
                       />
@@ -322,19 +326,23 @@ const BusinessDetails = () => {
               </div>
               <div className="space-y-4">
                 <div className="glass-card p-5 rounded-xl">
-                  <h3 className="font-semibold mb-2">Address</h3>
-                  <p className="text-sm text-muted-foreground">{business.streetnumber} {business.streetname}, {business.businesssuberb}, {business.state}</p>
+                  <h3 className="font-semibold mb-2">Owner</h3>
+                  <p className="text-sm text-muted-foreground">{business.owner_name}</p>
                 </div>
-                {business.cmobile && (
+                <div className="glass-card p-5 rounded-xl">
+                  <h3 className="font-semibold mb-2">Address</h3>
+                  <p className="text-sm text-muted-foreground">{business.business_address}</p>
+                </div>
+                {business.seller_contact && (
                   <div className="glass-card p-5 rounded-xl">
                     <h3 className="font-semibold mb-2">Phone</h3>
-                    <p className="text-sm text-muted-foreground">{business.cmobile}</p>
+                    <p className="text-sm text-muted-foreground">{business.seller_contact}</p>
                   </div>
                 )}
-                {business.cemail && (
+                {business.seller_email && (
                   <div className="glass-card p-5 rounded-xl">
                     <h3 className="font-semibold mb-2">Email</h3>
-                    <p className="text-sm text-muted-foreground">{business.cemail}</p>
+                    <p className="text-sm text-muted-foreground">{business.seller_email}</p>
                   </div>
                 )}
               </div>

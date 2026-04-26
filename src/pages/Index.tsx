@@ -3,6 +3,7 @@ import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
 import ServiceGrid from "@/components/ServiceGrid";
 import ModernFeatures from "@/components/ModernFeatures";
+import ModernFeatures2 from "@/components/ModernFeatures2";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Search, Briefcase, ShoppingBag, Users, CreditCard, Globe, Shield, Zap, Building2, ArrowRight, Store, TrendingUp } from "lucide-react";
@@ -10,9 +11,11 @@ import { Search, Briefcase, ShoppingBag, Users, CreditCard, Globe, Shield, Zap, 
 const Index = () => (
   <div className="min-h-screen">
     <Navbar />
+    <ModernFeatures2 />
     <Hero />
     <ServiceGrid />
     <ModernFeatures />
+
 
     {/* Join as Company Section */}
     <section className="section-padding bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 text-white">
@@ -27,8 +30,8 @@ const Index = () => (
               Join as a Company
             </h2>
             <p className="text-lg text-white/90 mb-8 leading-relaxed">
-              Grow your business with Australia's complete trading platform. 
-              List your services, sell products, post jobs, and reach thousands 
+              Grow your business with Australia's complete trading platform.
+              List your services, sell products, post jobs, and reach thousands
               of potential customers — all in one place.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">

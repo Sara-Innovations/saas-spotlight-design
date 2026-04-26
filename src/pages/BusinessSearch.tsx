@@ -5,17 +5,18 @@ import Footer from "@/components/Footer";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, MapPin, Phone, Star, ChevronRight, Loader2, Globe } from "lucide-react";
+import { Search, MapPin, Phone, User, ChevronRight, Loader2, Globe } from "lucide-react";
 import { categories as staticCategories } from "@/lib/mockData";
 import { useQuery } from "@tanstack/react-query";
-import { fetchBusinesses, fetchCategories, fetchSubCategories } from "@/lib/api";
+import { fetchBusinesses, fetchCategories, fetchSubCategories, BARGAIN_URL } from "@/lib/api";
+import { useAuth } from "@/contexts/AuthContext";
 import { Skeleton } from "@/components/ui/skeleton";
-import { 
-  Pagination, 
-  PaginationContent, 
-  PaginationItem, 
-  PaginationLink, 
-  PaginationNext, 
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
   PaginationPrevious,
   PaginationEllipsis
 } from "@/components/ui/pagination";
@@ -51,14 +52,16 @@ const BusinessSearch = () => {
   const [location, setLocation] = useState("");
   const [page, setPage] = useState(1);
 
+  const { isAuthenticated, token } = useAuth();
+
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["businesses", search, categoryId, subCategoryId, location, page],
-    queryFn: () => fetchBusinesses({ 
-      search, 
-      category_id: categoryId, 
-      sub_category_id: subCategoryId, 
-      location, 
-      page 
+    queryFn: () => fetchBusinesses({
+      search,
+      category_id: categoryId,
+      sub_category_id: subCategoryId,
+      location,
+      page
     }),
   });
 
@@ -100,7 +103,7 @@ const BusinessSearch = () => {
         <div className="gradient-bg py-12 px-4">
           <div className="container mx-auto max-w-4xl text-center">
             <h1 className="text-3xl md:text-4xl font-bold text-primary-foreground mb-6">Business Search</h1>
-            <form 
+            <form
               onSubmit={(e) => {
                 e.preventDefault();
                 refetch();
@@ -139,7 +142,7 @@ const BusinessSearch = () => {
                       <SelectItem value="loading" disabled>Loading...</SelectItem>
                     ) : (
                       subCategoriesData?.data?.map((sc: any) => (
-                        <SelectItem key={sc.id} value={sc.id}>{sc.subcategory_name}</SelectItem>
+                        <SelectItem key={sc.id} value={sc.id}>{sc.sub_category_name}</SelectItem>
                       ))
                     )}
                   </SelectContent>
@@ -165,14 +168,14 @@ const BusinessSearch = () => {
         <div className="container mx-auto max-w-5xl">
           <p className="text-sm text-muted-foreground mb-6">
             {isLoading ? (
-              "Searching..." 
+              "Searching..."
             ) : pagination ? (
               `Showing ${Math.min((page - 1) * pagination.limit + 1, pagination.total)} - ${Math.min(page * pagination.limit, pagination.total)} of ${pagination.total} businesses`
             ) : (
               `${businessesResult.length} businesses found`
             )}
           </p>
-          
+
           {isLoading ? (
             <div className="space-y-4">
               {[...Array(5)].map((_, i) => (
@@ -189,33 +192,36 @@ const BusinessSearch = () => {
                 <div key={business.id} className="glass-card rounded-xl p-0 overflow-hidden flex flex-col md:flex-row">
                   <div className="flex-1 p-6">
                     <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{business.category_name}</span>
-                    <h3 className="text-xl font-bold text-primary mt-1">{business.cname}</h3>
+                    <h3 className="text-xl font-bold text-primary mt-1">{business.business_name}</h3>
                     <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
                       <MapPin className="w-3.5 h-3.5" />
-                      <span>{business.businesssuberb}, {business.state}</span>
+                      <span>{business.business_address}</span>
                     </div>
                     {business.description && (
                       <p className="text-sm text-muted-foreground mt-3 line-clamp-2">{business.description}</p>
                     )}
                     <div className="flex items-center gap-2 mt-3">
                       <div className="flex items-center gap-1">
-                        <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                        <span className="text-sm font-medium">{business.rating || "4.5"}</span>
+                        <User className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                        <span className="text-sm font-medium">{business.owner_name || "4.5"}</span>
                       </div>
-                      <span className="text-xs text-muted-foreground">({business.reviews || "12"} reviews)</span>
+                      {/* <span className="text-xs text-muted-foreground">({business.reviews || "12"} reviews)</span> */}
                     </div>
                     <div className="flex gap-3 mt-4 flex-wrap">
-                      {business.cmobile && (
-                        <a href={`tel:${business.cmobile}`} className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-border text-sm font-medium hover:bg-muted transition-colors">
-                          <Phone className="w-4 h-4" /> {business.cmobile}
+                      {business.seller_contact && (
+                        <a href={`tel:${business.seller_contact}`} className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-border text-sm font-medium hover:bg-muted transition-colors">
+                          <Phone className="w-4 h-4" /> {business.seller_contact}
                         </a>
                       )}
                       <Link to={`/businesses/${business.id}`} className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary/10 text-primary text-sm font-medium hover:bg-primary/20 transition-colors">
                         <ChevronRight className="w-4 h-4" /> Details
                       </Link>
-                      <a 
-                        href={`http://tradinghub.test/WebsiteTheme/index/${business.id}`} 
-                        target="_blank" 
+                      <a
+                        href={isAuthenticated && token
+                          ? `${BARGAIN_URL}/api/Api_auth/sso?token=${token}&redirect=${encodeURIComponent(`website?com_id=${business.id}`)}`
+                          : `${BARGAIN_URL}/website?com_id=${business.id}`
+                        }
+                        target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-secondary/10 text-secondary-foreground text-sm font-medium hover:bg-secondary/20 transition-colors border border-secondary/20"
                       >
@@ -223,20 +229,20 @@ const BusinessSearch = () => {
                       </a>
                     </div>
                   </div>
-                  
+
                   {business.cmap ? (
                     <div className="md:w-64 h-48 md:h-auto overflow-hidden border-l border-border bg-muted/30">
                       {business.cmap.startsWith('http') ? (
-                        <iframe 
-                          src={business.cmap} 
-                          className="w-full h-full border-0" 
+                        <iframe
+                          src={business.cmap}
+                          className="w-full h-full border-0"
                           allowFullScreen
                           loading="lazy"
                         />
                       ) : (
-                        <div 
-                          className="w-full h-full [&_iframe]:w-full [&_iframe]:h-full [&_iframe]:border-0" 
-                          dangerouslySetInnerHTML={{ __html: business.cmap }} 
+                        <div
+                          className="w-full h-full [&_iframe]:w-full [&_iframe]:h-full [&_iframe]:border-0"
+                          dangerouslySetInnerHTML={{ __html: business.cmap }}
                         />
                       )}
                     </div>
@@ -263,8 +269,8 @@ const BusinessSearch = () => {
                   <Pagination>
                     <PaginationContent>
                       <PaginationItem>
-                        <PaginationPrevious 
-                          href="#" 
+                        <PaginationPrevious
+                          href="#"
                           onClick={(e) => {
                             e.preventDefault();
                             if (page > 1) setPage(page - 1);
@@ -272,17 +278,17 @@ const BusinessSearch = () => {
                           className={page === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
                         />
                       </PaginationItem>
-                      
+
                       {Array.from({ length: pagination.total_pages }).map((_, i) => {
                         // Logic to show a limited number of pages
                         if (
-                          i === 0 || 
-                          i === pagination.total_pages - 1 || 
+                          i === 0 ||
+                          i === pagination.total_pages - 1 ||
                           (i >= page - 1 && i <= page + 1)
                         ) {
                           return (
                             <PaginationItem key={i}>
-                              <PaginationLink 
+                              <PaginationLink
                                 href="#"
                                 isActive={page === i + 1}
                                 onClick={(e) => {
@@ -296,7 +302,7 @@ const BusinessSearch = () => {
                             </PaginationItem>
                           );
                         } else if (
-                          i === 1 || 
+                          i === 1 ||
                           i === pagination.total_pages - 2
                         ) {
                           return (
@@ -309,8 +315,8 @@ const BusinessSearch = () => {
                       })}
 
                       <PaginationItem>
-                        <PaginationNext 
-                          href="#" 
+                        <PaginationNext
+                          href="#"
                           onClick={(e) => {
                             e.preventDefault();
                             if (page < pagination.total_pages) setPage(page + 1);

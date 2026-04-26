@@ -1,11 +1,8 @@
-const BARGAIN_URL = import.meta.env.VITE_BARGAIN_URL || "http://bargainshop.test";
-const TRADING_URL = import.meta.env.VITE_TRADING_URL || "http://tradinghub.test";
+export const BARGAIN_URL = import.meta.env.VITE_BARGAIN_URL || "http://bargainshop.test";
 
 // Use relative API path for development (proxied by Vite), full URL for production
-const isDevelopment = import.meta.env.DEV;
-const TRADING_API_BASE_URL = isDevelopment ? "/api" : `${TRADING_URL}/api`;
-const BARGAIN_API_BASE_URL = isDevelopment ? "/api" : `${BARGAIN_URL}/api`;
-const API_BASE_URL = TRADING_API_BASE_URL;
+const BARGAIN_API_BASE_URL = `${BARGAIN_URL}/api`;
+const API_BASE_URL = BARGAIN_API_BASE_URL;
 
 export interface Pagination {
   total: number;
@@ -16,25 +13,24 @@ export interface Pagination {
 
 export interface Business {
   id: string;
-  cname: string;
-  cmobile: string;
-  cemail: string;
-  cwebsite: string;
-  abn: string;
-  acn: string;
-  postcode: string;
-  streetnumber: string;
-  streetname: string;
-  businesssuberb: string;
-  state: string;
+  business_name: string;
+  owner_name: string;
+  seller_email: string;
+  seller_contact: string;
+  business_address: string;
+  business_about?: string;
+  business_logo?: string;
+  business_banner?: string;
   category_name: string;
-  b_cat_id: string;
-  b_s_cat_id?: string;
-  // Mock fields that might be missing in DB but needed by UI
+  com_cat_id: string;
+  com_sub_cat_id?: string;
+  // UI helper fields
   rating?: string;
   reviews?: string;
   description?: string;
   cmap?: string;
+  clongdetails?: string;
+  cwebsite?: string;
 }
 
 export interface Category {
@@ -112,7 +108,7 @@ export const fetchCategories = async () => {
 
 export const fetchSubCategories = async (categoryId: string) => {
   if (!categoryId || categoryId === "all") return { status: "success", data: [] };
-  
+
   const response = await fetch(`${BARGAIN_URL}/api/business/sub-categories?category_id=${categoryId}`);
   if (!response.ok) {
     throw new Error("Failed to fetch sub-categories");
@@ -122,50 +118,18 @@ export const fetchSubCategories = async (categoryId: string) => {
 
 
 export const registerBusiness = async (data: any) => {
-  // Call Trading Hub API
-  const tradingPromise = fetch(`${TRADING_API_BASE_URL}/register`, {
+  const response = await fetch(`${BARGAIN_API_BASE_URL}/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
 
-  // Call Bargain Shop API
-  const bargainPromise = fetch(`${BARGAIN_API_BASE_URL}/register`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  });
-
-  // Wait for both to complete
-  const [tradingRes, bargainRes] = await Promise.allSettled([tradingPromise, bargainPromise]);
-
-  let errorMessage = "";
-  let successData = null;
-
-  if (tradingRes.status === "fulfilled" && tradingRes.value.ok) {
-    successData = await tradingRes.value.json();
-  } else if (tradingRes.status === "fulfilled") {
-    const errorData = await tradingRes.value.json().catch(() => ({}));
-    errorMessage += `Trading Hub Error: ${errorData.message || "Failed"}. `;
-  } else {
-    errorMessage += `Trading Hub connection failed: ${tradingRes.reason?.message || "Network Error"}. `;
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || "Registration failed");
   }
 
-  if (bargainRes.status === "fulfilled" && bargainRes.value.ok) {
-    // Successfully registered in bargain shop too
-    if (!successData) successData = await bargainRes.value.json();
-  } else if (bargainRes.status === "fulfilled") {
-    const errorData = await bargainRes.value.json().catch(() => ({}));
-    errorMessage += `Bargain Shop Error: ${errorData.message || "Failed"}. `;
-  } else {
-    errorMessage += `Bargain Shop connection failed: ${bargainRes.reason?.message || "Network Error"}. `;
-  }
-
-  if (errorMessage && !successData) {
-    throw new Error(errorMessage);
-  }
-
-  return successData || { status: "success", message: "Registration partially successful" };
+  return response.json();
 };
 
 export const fetchProducts = async ({
