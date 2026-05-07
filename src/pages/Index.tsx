@@ -4,6 +4,9 @@ import Hero from "@/components/Hero";
 import ServiceGrid from "@/components/ServiceGrid";
 import ModernFeatures from "@/components/ModernFeatures";
 import ModernFeatures2 from "@/components/ModernFeatures2";
+import ModernFeaturesBackground from "@/components/ModernFeaturesBackground";
+import ModernFeaturesCompact from "@/components/ModernFeaturesCompact";
+import VideoHero from "@/components/VideoHero";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Search, Briefcase, ShoppingBag, Users, CreditCard, Globe, Shield, Zap, Building2, ArrowRight, Store, TrendingUp } from "lucide-react";
@@ -11,10 +14,19 @@ import { Search, Briefcase, ShoppingBag, Users, CreditCard, Globe, Shield, Zap, 
 const Index = () => (
   <div className="min-h-screen">
     <Navbar />
-    <ModernFeatures2 />
-    <Hero />
+    <VideoHero />
+    
+    <div className="relative pt-32 pb-12">
+      <ModernFeaturesCompact />
+    </div>
+
     <ServiceGrid />
-    <ModernFeatures />
+    
+    <div className="py-20">
+      <ModernFeaturesBackground />
+    </div>
+
+    <Hero />
 
 
     {/* Join as Company Section */}

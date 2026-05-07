@@ -221,8 +221,12 @@ const BusinessDetails = () => {
                 {services && services.length > 0 ? (
                   services.map((service: any) => (
                     <div key={service.id} className="glass-card p-5 rounded-xl">
-                      <div className="w-10 h-10 rounded-lg gradient-bg flex items-center justify-center mb-3">
-                        <Star className="w-5 h-5 text-primary-foreground" />
+                      <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center mb-3 overflow-hidden">
+                        {service.image ? (
+                          <img src={service.image} alt={service.title} className="w-full h-full object-cover" />
+                        ) : (
+                          <Star className="w-6 h-6 text-primary" />
+                        )}
                       </div>
                       <h3 className="font-semibold">{service.title}</h3>
                       <div
@@ -247,7 +251,7 @@ const BusinessDetails = () => {
                     <div key={client.id} className="glass-card p-6 rounded-xl text-center">
                       <div className="w-16 h-16 rounded-full bg-muted mx-auto mb-3 flex items-center justify-center text-lg font-bold text-muted-foreground overflow-hidden">
                         {client.image ? (
-                          <img src={`/asset/images/client/${client.image}`} alt={client.title} className="w-full h-full object-cover" />
+                          <img src={client.image} alt={client.title} className="w-full h-full object-cover" />
                         ) : (
                           client.title[0]
                         )}
@@ -269,7 +273,7 @@ const BusinessDetails = () => {
                 {gallery && gallery.length > 0 ? (
                   gallery.map((item: any) => (
                     <div key={item.id} className="bg-muted rounded-xl aspect-video overflow-hidden">
-                      <img src={`/asset/images/gallery/${item.image}`} alt="Gallery item" className="w-full h-full object-cover" />
+                      <img src={item.image} alt="Gallery item" className="w-full h-full object-cover" />
                     </div>
                   ))
                 ) : (
@@ -288,7 +292,7 @@ const BusinessDetails = () => {
                     <div key={expert.id} className="glass-card p-6 rounded-xl text-center">
                       <div className="w-20 h-20 rounded-full bg-muted mx-auto mb-4 flex items-center justify-center text-2xl font-bold text-muted-foreground overflow-hidden">
                         {expert.image ? (
-                          <img src={`/asset/images/expert/${expert.image}`} alt={expert.name} className="w-full h-full object-cover" />
+                          <img src={expert.image} alt={expert.name} className="w-full h-full object-cover" />
                         ) : (
                           expert.name.split(" ").map((n: string) => n[0]).join("")
                         )}

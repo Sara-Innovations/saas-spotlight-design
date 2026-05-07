@@ -11,6 +11,7 @@ const features = [
     link: "/businesses",
     color: "text-blue-500",
     bgColor: "bg-blue-500/10",
+    image: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2070&auto=format&fit=crop"
   },
   {
     title: "Jobs Directory",
@@ -19,6 +20,7 @@ const features = [
     link: "/jobs",
     color: "text-purple-500",
     bgColor: "bg-purple-500/10",
+    image: "https://images.unsplash.com/photo-1521737711867-e3b97375f902?q=80&w=1974&auto=format&fit=crop"
   },
   {
     title: "Ecommerce Platform",
@@ -27,6 +29,7 @@ const features = [
     link: "/products",
     color: "text-emerald-500",
     bgColor: "bg-emerald-500/10",
+    image: "https://images.unsplash.com/photo-1472851294608-062f824d29cc?q=80&w=2070&auto=format&fit=crop"
   },
   {
     title: "Business Network",
@@ -35,6 +38,7 @@ const features = [
     link: "/profile",
     color: "text-orange-500",
     bgColor: "bg-orange-500/10",
+    image: "https://images.unsplash.com/photo-1515187029135-18ee286d815b?q=80&w=2070&auto=format&fit=crop"
   },
   {
     title: "Professional Services",
@@ -43,6 +47,7 @@ const features = [
     link: "/services",
     color: "text-pink-500",
     bgColor: "bg-pink-500/10",
+    image: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?q=80&w=2070&auto=format&fit=crop"
   },
 ];
 
@@ -87,22 +92,37 @@ const ModernFeatures = () => {
             >
               <Link 
                 to={feature.link}
-                className="group relative block h-full p-6 rounded-[2rem] bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-white/10 shadow-sm transition-all duration-500 hover:shadow-2xl hover:shadow-primary/20 hover:-translate-y-2 hover:border-primary/30"
+                className="group relative block h-full p-8 rounded-[2.5rem] bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-white/10 shadow-sm transition-all duration-500 hover:shadow-2xl hover:shadow-primary/20 hover:-translate-y-2 hover:border-primary/30 overflow-hidden"
               >
-                <div className={`w-12 h-12 rounded-xl ${feature.bgColor} flex items-center justify-center mb-5 transition-all duration-500 group-hover:scale-110 group-hover:rotate-6 group-hover:shadow-[0_0_20px_rgba(79,70,229,0.3)]`}>
-                  <feature.icon className={`w-6 h-6 ${feature.color}`} />
-                </div>
-                
-                <h3 className="text-lg font-bold mb-2 group-hover:text-primary transition-colors">
-                  {feature.title}
-                </h3>
-                
-                <p className="text-xs text-muted-foreground leading-relaxed mb-6 flex-grow">
-                  {feature.desc}
-                </p>
+                <div className="flex flex-col md:flex-row gap-6 h-full">
+                  <div className="flex-grow md:w-3/5">
+                    <div className={`w-14 h-14 rounded-2xl ${feature.bgColor} flex items-center justify-center mb-6 transition-all duration-500 group-hover:scale-110 group-hover:rotate-6 group-hover:shadow-[0_0_20px_rgba(79,70,229,0.3)]`}>
+                      <feature.icon className={`w-7 h-7 ${feature.color}`} />
+                    </div>
+                    
+                    <h3 className="text-2xl font-extrabold mb-3 group-hover:text-primary transition-colors">
+                      {feature.title}
+                    </h3>
+                    
+                    <p className="text-sm text-muted-foreground leading-relaxed mb-8">
+                      {feature.desc}
+                    </p>
 
-                <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-wider text-primary group-hover:gap-3 transition-all duration-300">
-                  Learn More <ArrowRight className="w-3.5 h-3.5" />
+                    <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-primary group-hover:gap-3 transition-all duration-300">
+                      Explore Now <ArrowRight className="w-4 h-4" />
+                    </div>
+                  </div>
+
+                  <div className="hidden md:block md:w-2/5 relative">
+                    <div className="absolute inset-0 rounded-3xl overflow-hidden shadow-inner bg-muted">
+                      <img 
+                        src={feature.image} 
+                        alt={feature.title} 
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    </div>
+                  </div>
                 </div>
               </Link>
             </motion.div>
