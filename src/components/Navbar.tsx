@@ -9,6 +9,7 @@ import { LoginModal } from "@/components/LoginModal";
 import { RegisterModal } from "@/components/RegisterModal";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/components/ui/use-toast";
+import { useSiteSettings } from "@/contexts/SiteContext";
 
 const navLinks = [
   { label: "Home", href: "/" },
@@ -28,6 +29,7 @@ const Navbar = () => {
   const { theme, setTheme } = useTheme();
   const location = useLocation();
   const { isAuthenticated, user, token, openLoginModal, openRegisterModal, logout, handleSSOToDashboard } = useAuth();
+  const { settings } = useSiteSettings();
   const dropdownRef = useRef<HTMLDivElement>(null);
   const cartDropdownRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
@@ -74,7 +76,7 @@ const Navbar = () => {
   const handleCartClick = (e: React.MouseEvent) => {
     e.preventDefault();
     const API_BASE_URL = import.meta.env.VITE_BARGAIN_URL || 'http://bargainshop.test';
-    
+
     let targetPath = "shop/cart";
     if (cart.total_items > 0) {
       const firstItem = cart.items[0];
@@ -101,8 +103,12 @@ const Navbar = () => {
 
   // Listen for cart and wishlist updates
   useEffect(() => {
-    const handleCartUpdate = () => setCart(getCart());
-    const handleWishlistUpdate = () => setWishlist(getWishlist());
+    const handleCartUpdate = () => {
+      setCart(getCart());
+    };
+    const handleWishlistUpdate = () => {
+      setWishlist(getWishlist());
+    };
 
     window.addEventListener('cartUpdate', handleCartUpdate);
     window.addEventListener('wishlistUpdate', handleWishlistUpdate);
@@ -117,8 +123,17 @@ const Navbar = () => {
     <>
       <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
         <div className="container mx-auto flex items-center justify-between h-16 px-4">
-          <Link to="/" className="text-xl font-bold gradient-text">
-            Trading Hub
+          <Link to="/" className="flex items-center gap-2 group">
+            {settings?.company?.logo_url ? (
+              <img
+                src={settings.company.logo_url}
+                alt={settings.company.company_name}
+                className="h-16 w-auto object-contain transition-transform group-hover:scale-105"
+              />
+            ) : <span className="text-xl font-bold gradient-text">
+              {settings?.company?.company_name || "Trading Hub"}
+            </span>}
+
           </Link>
 
           {/* Desktop Links */}
@@ -134,7 +149,7 @@ const Navbar = () => {
               >
                 {link.label}
                 {location.pathname === link.href && (
-                  <motion.div 
+                  <motion.div
                     layoutId="activeNav"
                     className="absolute -bottom-[21px] left-0 right-0 h-0.5 bg-primary"
                   />
@@ -161,20 +176,18 @@ const Navbar = () => {
 
             {/* Cart Button */}
             <div className="relative" ref={cartDropdownRef}>
-              <button 
+              <button
                 onClick={() => {
                   setCartOpen(!cartOpen);
                   setProfileOpen(false);
                 }}
-                className={`relative p-2 rounded-full transition-colors ${
-                  cartOpen ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'
-                }`}
+                className={`relative p-2 rounded-full transition-colors ${cartOpen ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'
+                  }`}
               >
                 <ShoppingCart className="w-5 h-5" />
                 {cart.total_items > 0 && (
-                  <span className={`absolute -top-1 -right-1 text-[10px] font-bold rounded-full w-4.5 h-4.5 flex items-center justify-center border-2 border-background ${
-                    cartOpen ? 'bg-background text-primary' : 'bg-primary text-primary-foreground'
-                  }`}>
+                  <span className={`absolute -top-1 -right-1 text-[10px] font-bold rounded-full w-4.5 h-4.5 flex items-center justify-center border-2 border-background ${cartOpen ? 'bg-background text-primary' : 'bg-primary text-primary-foreground'
+                    }`}>
                     {cart.total_items}
                   </span>
                 )}
@@ -211,7 +224,7 @@ const Navbar = () => {
                                   <span className="text-xs font-bold text-primary">${item.price}</span>
                                   <div className="flex items-center gap-2">
                                     <span className="text-[10px] text-muted-foreground">Qty: {item.quantity}</span>
-                                    <button 
+                                    <button
                                       onClick={(e) => handleRemoveItem(e, item.product_id)}
                                       className="p-1 hover:text-red-500 transition-colors"
                                       title="Remove item"
@@ -238,7 +251,7 @@ const Navbar = () => {
                           <span className="text-sm font-medium">Total:</span>
                           <span className="text-sm font-bold text-primary">${cart.total_price.toFixed(2)}</span>
                         </div>
-                        <Button 
+                        <Button
                           onClick={handleCartClick}
                           className="w-full h-10 rounded-lg font-bold text-sm shadow-md shadow-primary/20"
                         >
@@ -265,11 +278,10 @@ const Navbar = () => {
 
             {isAuthenticated ? (
               <div className="relative" ref={dropdownRef}>
-                <button 
+                <button
                   onClick={() => setProfileOpen(!profileOpen)}
-                  className={`flex items-center gap-2 px-3 py-1.5 rounded-full transition-all duration-200 ${
-                    profileOpen ? 'bg-primary text-primary-foreground' : 'bg-muted hover:bg-muted/80'
-                  }`}
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-full transition-all duration-200 ${profileOpen ? 'bg-primary text-primary-foreground' : 'bg-muted hover:bg-muted/80'
+                    }`}
                 >
                   <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center">
                     <User className={`w-3.5 h-3.5 ${profileOpen ? 'text-primary-foreground' : 'text-primary'}`} />
@@ -291,8 +303,8 @@ const Navbar = () => {
                         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Account</p>
                         <p className="text-sm font-medium truncate">{user?.customeremail}</p>
                       </div>
-                      
-                      <button 
+
+                      <button
                         onClick={() => {
                           handleSSOToDashboard();
                           setProfileOpen(false);
@@ -302,8 +314,8 @@ const Navbar = () => {
                         <LayoutDashboard className="w-4 h-4 text-primary" />
                         <span>Dashboard</span>
                       </button>
-                      
-                      <button 
+
+                      <button
                         onClick={handleLogout}
                         className="w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-muted transition-colors text-left text-red-500"
                       >
@@ -348,7 +360,7 @@ const Navbar = () => {
         {/* Mobile menu */}
         <AnimatePresence>
           {mobileOpen && (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
@@ -372,8 +384,8 @@ const Navbar = () => {
 
               <div className="mt-6 pt-6 border-t border-border space-y-4">
                 <div className="grid grid-cols-2 gap-3">
-                  <Link 
-                    to="/cart" 
+                  <Link
+                    to="/cart"
                     onClick={(e) => {
                       setMobileOpen(false);
                       handleCartClick(e);
@@ -420,7 +432,7 @@ const Navbar = () => {
                       </div>
                     </div>
                     <div className="grid grid-cols-1 gap-2">
-                      <Button 
+                      <Button
                         onClick={() => {
                           handleSSOToDashboard();
                           setMobileOpen(false);
@@ -430,9 +442,9 @@ const Navbar = () => {
                         <LayoutDashboard className="w-4 h-4" />
                         Dashboard
                       </Button>
-                      <Button 
+                      <Button
                         variant="secondary"
-                        onClick={() => { handleLogout(); setMobileOpen(false); }} 
+                        onClick={() => { handleLogout(); setMobileOpen(false); }}
                         className="w-full h-12 rounded-xl font-bold flex items-center gap-2 text-red-500"
                       >
                         <LogOut className="w-4 h-4" />
@@ -441,8 +453,8 @@ const Navbar = () => {
                     </div>
                   </div>
                 ) : (
-                  <Button 
-                    onClick={() => { openLoginModal(); setMobileOpen(false); }} 
+                  <Button
+                    onClick={() => { openLoginModal(); setMobileOpen(false); }}
                     className="w-full h-12 rounded-xl font-bold gradient-bg"
                   >
                     Sign In

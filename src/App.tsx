@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { SiteProvider } from "@/contexts/SiteContext";
 import Index from "./pages/Index";
 import BusinessSearch from "./pages/BusinessSearch";
 import BusinessDetails from "./pages/BusinessDetails";
@@ -32,39 +33,41 @@ const queryClient = new QueryClient();
 const App = () => (
   <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/businesses" element={<BusinessSearch />} />
-              <Route path="/businesses/:id" element={<BusinessDetails />} />
-              <Route path="/services" element={<Services />} />
-              <Route path="/products" element={<Products />} />
-              <Route path="/shop/product-details" element={<ProductDetails />} />
-              <Route path="/cart" element={<Cart />} />
-              <Route path="/wishlist" element={<Wishlist />} />
-              <Route path="/jobs" element={<Jobs />} />
+      <SiteProvider>
+        <AuthProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/businesses" element={<BusinessSearch />} />
+                <Route path="/businesses/:id" element={<BusinessDetails />} />
+                <Route path="/services" element={<Services />} />
+                <Route path="/products" element={<Products />} />
+                <Route path="/shop/product-details" element={<ProductDetails />} />
+                <Route path="/cart" element={<Cart />} />
+                <Route path="/wishlist" element={<Wishlist />} />
+                <Route path="/jobs" element={<Jobs />} />
 
-              <Route path="/jobs/:id" element={<JobDetails />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/payments" element={<Payments />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/contact" element={<Contact />} />
+                <Route path="/jobs/:id" element={<JobDetails />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/payments" element={<Payments />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/contact" element={<Contact />} />
 
-              {/* Auth Routes */}
-              <Route path="/login" element={<AuthLayout title="Welcome Back" description="Sign in to your account to continue"><Login /></AuthLayout>} />
-              <Route path="/register" element={<AuthLayout title="Create Account" description="Join thousands of businesses already growing with us" containerClassName="max-w-2xl"><Register /></AuthLayout>} />
-              <Route path="/forgot-password" element={<AuthLayout title="Reset Password" description="We'll send you a link to get back in"><ForgotPassword /></AuthLayout>} />
-              <Route path="/reset-password" element={<AuthLayout title="New Password" description="Create a secure new password for your account"><ResetPassword /></AuthLayout>} />
+                {/* Auth Routes */}
+                <Route path="/login" element={<AuthLayout title="Welcome Back" description="Sign in to your account to continue"><Login /></AuthLayout>} />
+                <Route path="/register" element={<AuthLayout title="Create Account" description="Join thousands of businesses already growing with us" containerClassName="max-w-2xl"><Register /></AuthLayout>} />
+                <Route path="/forgot-password" element={<AuthLayout title="Reset Password" description="We'll send you a link to get back in"><ForgotPassword /></AuthLayout>} />
+                <Route path="/reset-password" element={<AuthLayout title="New Password" description="Create a secure new password for your account"><ResetPassword /></AuthLayout>} />
 
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
-      </AuthProvider>
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </TooltipProvider>
+        </AuthProvider>
+      </SiteProvider>
     </QueryClientProvider>
   </ThemeProvider>
 );
